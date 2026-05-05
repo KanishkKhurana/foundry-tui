@@ -2,7 +2,12 @@
 
 All notable changes to this project are documented in this file.
 
-## [0.1.0] - 2026-05-05
+## [0.0.2] - 2026-05-05
+
+### Changed
+- Redirected crate `documentation` metadata links to GitHub-hosted README files.
+
+## [0.0.1] - 2026-05-05
 
 ### Added
 - Initial `foundry-tui` release with tabs for build/test/script/anvil/cast/verify/builder/logs/history.

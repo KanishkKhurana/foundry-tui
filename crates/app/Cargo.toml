@@ -5,7 +5,9 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 description = "Application model and controller for foundry-tui"
-documentation = "https://docs.rs/foundry-tui-app"
+documentation = "https://github.com/KanishkKhurana/foundry-tui/blob/main/crates/app/README.md"
+repository = "https://github.com/KanishkKhurana/foundry-tui"
+homepage = "https://github.com/KanishkKhurana/foundry-tui"
 readme = "README.md"
 keywords = ["foundry", "tui", "forge", "solidity"]
 categories = ["command-line-utilities", "development-tools"]
@@ -15,5 +17,5 @@ anyhow.workspace = true
 chrono.workspace = true
 crossterm.workspace = true
 tokio.workspace = true
-foundry-tui-config = { version = "0.1.0", path = "../config" }
-foundry-tui-foundry = { version = "0.1.0", path = "../foundry" }
+foundry-tui-config = { version = "0.0.2", path = "../config" }
+foundry-tui-foundry = { version = "0.0.2", path = "../foundry" }

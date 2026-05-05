@@ -202,7 +202,7 @@ checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
 name = "foundry-tui"
-version = "0.1.0"
+version = "0.0.2"
 dependencies = [
  "anyhow",
  "crossterm",
@@ -218,7 +218,7 @@ dependencies = [
 
 [[package]]
 name = "foundry-tui-app"
-version = "0.1.0"
+version = "0.0.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -230,7 +230,7 @@ dependencies = [
 
 [[package]]
 name = "foundry-tui-config"
-version = "0.1.0"
+version = "0.0.2"
 dependencies = [
  "anyhow",
  "dirs",
@@ -241,7 +241,7 @@ dependencies = [
 
 [[package]]
 name = "foundry-tui-foundry"
-version = "0.1.0"
+version = "0.0.2"
 dependencies = [
  "anyhow",
  "serde",
@@ -250,7 +250,7 @@ dependencies = [
 
 [[package]]
 name = "foundry-tui-itest"
-version = "0.1.0"
+version = "0.0.2"
 dependencies = [
  "anyhow",
  "foundry-tui-config",
@@ -260,7 +260,7 @@ dependencies = [
 
 [[package]]
 name = "foundry-tui-ui"
-version = "0.1.0"
+version = "0.0.2"
 dependencies = [
  "anyhow",
  "chrono",

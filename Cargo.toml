@@ -3,7 +3,7 @@ members = [".", "crates/app", "crates/config", "crates/foundry", "crates/ui", "c
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.0.2"
 edition = "2021"
 license = "MIT"
 rust-version = "1.80"
@@ -29,7 +29,9 @@ edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 description = "Feature-rich, keyboard-first TUI for Foundry users"
-documentation = "https://docs.rs/foundry-tui"
+documentation = "https://github.com/KanishkKhurana/foundry-tui/blob/main/README.md"
+repository = "https://github.com/KanishkKhurana/foundry-tui"
+homepage = "https://github.com/KanishkKhurana/foundry-tui"
 readme = "README.md"
 keywords = ["foundry", "forge", "tui", "solidity", "ethereum"]
 categories = ["command-line-utilities", "development-tools"]
@@ -41,7 +43,7 @@ tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 indexmap.workspace = true
-foundry-tui-app = { version = "0.1.0", path = "crates/app" }
-foundry-tui-config = { version = "0.1.0", path = "crates/config" }
-foundry-tui-foundry = { version = "0.1.0", path = "crates/foundry" }
-foundry-tui-ui = { version = "0.1.0", path = "crates/ui" }
+foundry-tui-app = { version = "0.0.2", path = "crates/app" }
+foundry-tui-config = { version = "0.0.2", path = "crates/config" }
+foundry-tui-foundry = { version = "0.0.2", path = "crates/foundry" }
+foundry-tui-ui = { version = "0.0.2", path = "crates/ui" }
