@@ -1,0 +1,21 @@
+[package]
+name = "foundry-tui-ui"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Ratatui rendering and interaction layer for foundry-tui"
+documentation = "https://docs.rs/foundry-tui-ui"
+readme = "README.md"
+keywords = ["foundry", "tui", "ratatui", "solidity"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+crossterm.workspace = true
+ratatui.workspace = true
+unicode-segmentation = "=1.12.0"
+foundry-tui-app = { version = "0.1.0", path = "../app" }
+foundry-tui-config = { version = "0.1.0", path = "../config" }
+foundry-tui-foundry = { version = "0.1.0", path = "../foundry" }

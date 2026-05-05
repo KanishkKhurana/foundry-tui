@@ -1,0 +1,13 @@
+[package]
+name = "foundry-tui-itest"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+tokio.workspace = true
+foundry-tui-config = { version = "0.1.0", path = "../config" }
+foundry-tui-foundry = { version = "0.1.0", path = "../foundry" }

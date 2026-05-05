@@ -1,0 +1,16 @@
+[package]
+name = "foundry-tui-foundry"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "Foundry process execution primitives for foundry-tui"
+documentation = "https://docs.rs/foundry-tui-foundry"
+readme = "README.md"
+keywords = ["foundry", "forge", "cast", "anvil", "tui"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+tokio.workspace = true
