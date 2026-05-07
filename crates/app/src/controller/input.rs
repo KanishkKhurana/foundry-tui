@@ -370,8 +370,10 @@ impl AppController {
 mod tests {
     use std::path::PathBuf;
 
-    use crossterm::event::{KeyModifiers, MouseEvent, MouseEventKind};
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind};
     use foundry_tui_config::AppConfig;
+    use foundry_tui_foundry::ToolEvent;
+    use tokio::sync::mpsc::unbounded_channel;
 
     use crate::model::SectionFocus;
 
@@ -423,5 +425,33 @@ mod tests {
             modifiers: KeyModifiers::NONE,
         });
         assert_eq!(controller.model.palette_index, 0);
+    }
+
+    #[test]
+    fn question_mark_is_unbound_by_default() {
+        let config = AppConfig::default();
+        let mut controller = AppController::new(config, PathBuf::from("."), PathBuf::from("cfg"));
+        let (events_tx, _events_rx) = unbounded_channel::<ToolEvent>();
+
+        assert!(controller.model.show_build_onboarding);
+        controller.handle_key(
+            KeyEvent::new(KeyCode::Char('?'), KeyModifiers::NONE),
+            &events_tx,
+        );
+        assert!(controller.model.show_build_onboarding);
+    }
+
+    #[test]
+    fn toggle_onboarding_action_keeps_onboarding_enabled() {
+        let config = AppConfig::default();
+        let mut controller = AppController::new(config, PathBuf::from("."), PathBuf::from("cfg"));
+        let (events_tx, _events_rx) = unbounded_channel::<ToolEvent>();
+        controller.model.show_build_onboarding = false;
+        assert!(!controller.model.show_build_onboarding);
+        controller.execute_action(
+            foundry_tui_config::ActionId::ToggleBuildOnboarding,
+            &events_tx,
+        );
+        assert!(controller.model.show_build_onboarding);
     }
 }

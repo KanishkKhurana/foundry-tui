@@ -43,7 +43,11 @@ async fn main() -> Result<()> {
         AppController::new_with_templates(config, project_root, config_path, template_state);
 
     let mut terminal = init_terminal()?;
-    let mut mouse_capture_enabled = true;
+    let mut mouse_capture_enabled = false;
+    set_mouse_capture(mouse_capture_enabled)?;
+    controller.model.mouse_mode_enabled = mouse_capture_enabled;
+    controller.model.notification =
+        Some("text selection mode enabled. press F2 for mouse interactions".to_string());
 
     let (input_tx, mut input_rx) = mpsc::unbounded_channel::<InputEvent>();
     let (tool_tx, mut tool_rx) = mpsc::unbounded_channel::<ToolEvent>();
@@ -64,6 +68,7 @@ async fn main() -> Result<()> {
                         if key.kind == KeyEventKind::Press && key.code == KeyCode::F(2) {
                             mouse_capture_enabled = !mouse_capture_enabled;
                             set_mouse_capture(mouse_capture_enabled)?;
+                            controller.model.mouse_mode_enabled = mouse_capture_enabled;
                             controller.model.notification = Some(if mouse_capture_enabled {
                                 "mouse mode enabled (hover + wheel). press F2 for text selection mode".to_string()
                             } else {

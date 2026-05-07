@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.0.3] - 2026-05-07
+
+### Changed
+- Build dashboard onboarding is now always visible and the `?` toggle keybinding was removed.
+- Existing configs automatically drop the legacy `toggle-build-onboarding` keybinding on load.
+- TUI now starts in text-selection mode by default (`F2` still toggles mouse interaction mode).
+
 ## [0.0.2] - 2026-05-05
 
 ### Changed

@@ -13,6 +13,12 @@ use crate::theme::UiTheme;
 use super::common::key_for;
 
 pub(super) fn render_footer(frame: &mut Frame<'_>, area: Rect, model: &AppModel, theme: UiTheme) {
+    let mouse_hint = if model.mouse_mode_enabled {
+        "F2 mouse:on"
+    } else {
+        "F2 mouse:off (select)"
+    };
+
     let spans = vec![
         Span::styled(" Palette ", Style::default().fg(theme.muted)),
         Span::styled(
@@ -58,7 +64,7 @@ pub(super) fn render_footer(frame: &mut Frame<'_>, area: Rect, model: &AppModel,
         ),
         Span::styled("  Mouse ", Style::default().fg(theme.muted)),
         Span::styled(
-            "F2 toggle/select",
+            mouse_hint,
             Style::default()
                 .fg(theme.accent)
                 .add_modifier(Modifier::BOLD),

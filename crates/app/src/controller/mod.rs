@@ -73,6 +73,8 @@ impl AppController {
             palette_open: false,
             palette_index: 0,
             palette_actions: ActionId::palette_defaults(),
+            show_build_onboarding: true,
+            mouse_mode_enabled: false,
             main_scroll: 0,
             jobs_scroll: 0,
             logs_scroll: 0,

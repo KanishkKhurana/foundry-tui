@@ -35,6 +35,10 @@ impl AppController {
                 self.model.palette_open = !self.model.palette_open;
                 self.model.palette_index = 0;
             }
+            ActionId::ToggleBuildOnboarding => {
+                self.model.show_build_onboarding = true;
+                self.model.notification = Some("build onboarding is always visible".to_string());
+            }
             ActionId::OpenThemePicker | ActionId::ThemeNext | ActionId::ThemePrev => {
                 self.model.notification = Some(
                     "theme switching was removed; using fixed bold-contrast theme".to_string(),

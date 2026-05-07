@@ -16,6 +16,7 @@ pub enum ActionId {
     FocusNextSection,
     FocusPrevSection,
     OpenPalette,
+    ToggleBuildOnboarding,
     OpenThemePicker,
     ThemeNext,
     ThemePrev,
@@ -42,6 +43,7 @@ impl ActionId {
             ActionId::FocusNextSection => "Focus Next Section",
             ActionId::FocusPrevSection => "Focus Previous Section",
             ActionId::OpenPalette => "Command Palette",
+            ActionId::ToggleBuildOnboarding => "Toggle Build Onboarding",
             ActionId::OpenThemePicker => "Legacy Theme Picker",
             ActionId::ThemeNext => "Legacy Theme Next",
             ActionId::ThemePrev => "Legacy Theme Previous",
@@ -82,6 +84,7 @@ pub struct UiConfig {
     pub tick_rate_ms: u64,
     pub frame_rate_ms: u64,
     pub show_welcome: bool,
+    pub show_build_onboarding: bool,
 }
 
 impl Default for UiConfig {
@@ -90,6 +93,7 @@ impl Default for UiConfig {
             tick_rate_ms: 250,
             frame_rate_ms: 33,
             show_welcome: true,
+            show_build_onboarding: true,
         }
     }
 }
@@ -901,6 +905,10 @@ fn ensure_default_key_bindings(config: &mut AppConfig) {
     for (action, binding) in default_bindings {
         config.keys.bindings.entry(action).or_insert(binding);
     }
+    config
+        .keys
+        .bindings
+        .remove(&ActionId::ToggleBuildOnboarding);
 }
 
 fn maybe_upgrade_legacy_theme(config: &mut AppConfig) {
@@ -957,6 +965,7 @@ mod tests {
         assert!(cfg.keys.bindings.contains_key(&ActionId::OpenPalette));
         assert!(cfg.keys.bindings.contains_key(&ActionId::FocusNextSection));
         assert!(cfg.keys.bindings.contains_key(&ActionId::FocusPrevSection));
+        assert!(cfg.ui.show_build_onboarding);
         assert_eq!(
             cfg.foundry.default_rpc_preset.as_deref(),
             Some("across-ethereum-1")
@@ -1016,11 +1025,18 @@ mod tests {
         let mut cfg = AppConfig::default();
         cfg.keys.bindings.remove(&ActionId::FocusNextSection);
         cfg.keys.bindings.remove(&ActionId::FocusPrevSection);
+        cfg.keys
+            .bindings
+            .insert(ActionId::ToggleBuildOnboarding, "?".to_string());
 
         ensure_default_key_bindings(&mut cfg);
 
         assert!(cfg.keys.bindings.contains_key(&ActionId::FocusNextSection));
         assert!(cfg.keys.bindings.contains_key(&ActionId::FocusPrevSection));
+        assert!(!cfg
+            .keys
+            .bindings
+            .contains_key(&ActionId::ToggleBuildOnboarding));
     }
 
     #[test]

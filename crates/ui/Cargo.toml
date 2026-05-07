@@ -18,6 +18,6 @@ chrono.workspace = true
 crossterm.workspace = true
 ratatui.workspace = true
 unicode-segmentation = "=1.12.0"
-foundry-tui-app = { version = "0.0.2", path = "../app" }
-foundry-tui-config = { version = "0.0.2", path = "../config" }
-foundry-tui-foundry = { version = "0.0.2", path = "../foundry" }
+foundry-tui-app = { version = "0.0.3", path = "../app" }
+foundry-tui-config = { version = "0.0.3", path = "../config" }
+foundry-tui-foundry = { version = "0.0.3", path = "../foundry" }

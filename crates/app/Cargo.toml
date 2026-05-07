@@ -17,5 +17,5 @@ anyhow.workspace = true
 chrono.workspace = true
 crossterm.workspace = true
 tokio.workspace = true
-foundry-tui-config = { version = "0.0.2", path = "../config" }
-foundry-tui-foundry = { version = "0.0.2", path = "../foundry" }
+foundry-tui-config = { version = "0.0.3", path = "../config" }
+foundry-tui-foundry = { version = "0.0.3", path = "../foundry" }

@@ -220,6 +220,8 @@ pub struct AppModel {
     pub palette_open: bool,
     pub palette_index: usize,
     pub palette_actions: Vec<ActionId>,
+    pub show_build_onboarding: bool,
+    pub mouse_mode_enabled: bool,
     pub main_scroll: usize,
     pub jobs_scroll: usize,
     pub logs_scroll: usize,

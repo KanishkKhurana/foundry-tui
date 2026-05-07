@@ -109,7 +109,25 @@ pub(super) fn render_active_tab(
                 _ => "RPC: not configured".to_string(),
             };
 
-            let mut lines = vec![
+            let mut lines = Vec::new();
+
+            if model.active_tab == Tab::Build {
+                lines.push(Line::from(Span::styled(
+                    "Welcome to Foundry TUI",
+                    Style::default()
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::BOLD),
+                )));
+                lines.push(Line::from(
+                    "Use this dashboard to run common Foundry flows quickly and build solidity smart contracts faster.",
+                ));
+                lines.push(Line::from(
+                    "Full docs: https://github.com/KanishkKhurana/foundry-tui/",
+                ));
+                lines.push(Line::from(""));
+            }
+
+            lines.extend(vec![
                 Line::from(Span::styled(
                     "Workspace Snapshot",
                     Style::default()
@@ -137,7 +155,7 @@ pub(super) fn render_active_tab(
                 Line::from(rpc_line),
                 Line::from(""),
                 Line::from(Span::styled(
-                    "Fast actions",
+                    "Start here with fast actions",
                     Style::default()
                         .fg(theme.accent)
                         .add_modifier(Modifier::BOLD),
@@ -199,7 +217,7 @@ pub(super) fn render_active_tab(
                         .fg(theme.accent)
                         .add_modifier(Modifier::BOLD),
                 )),
-            ];
+            ]);
 
             if model.project_sol_files.is_empty() {
                 lines.push(Line::from(Span::styled(
