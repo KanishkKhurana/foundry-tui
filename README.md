@@ -2,6 +2,8 @@
 
 A keyboard-first Rust TUI for Foundry users with live jobs, workflow tabs, command palette, and streaming logs.
 
+![Foundry TUI Screenshot](docs/assets/project-photo.png)
+
 ## Quick Install (1 command only)
 
 ```bash
