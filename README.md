@@ -2,6 +2,19 @@
 
 A keyboard-first Rust TUI for Foundry users with live jobs, workflow tabs, command palette, and streaming logs.
 
+## Quick Install (1 command only)
+
+```bash
+cargo install foundry-tui --locked && foundry-tui
+```
+
+Best Practice: Run it from any Foundry project directory:
+
+```bash
+cd /path/to/your/foundry-project
+foundry-tui
+```
+
 ## Features
 
 - Dense dashboard layout with tabs for `Build`, `Test`, `Script`, `Anvil`, `Cast`, `Verify`, `Builder`, `Logs`, `History`
@@ -19,9 +32,11 @@ A keyboard-first Rust TUI for Foundry users with live jobs, workflow tabs, comma
 - Single high-contrast `bold-contrast` color system with minimal log styling
 - Command palette (`Ctrl+P`) with predefined workflow actions
 
-## Install & Run
+## Development from Source (contributors)
 
 ```bash
+git clone https://github.com/KanishkKhurana/foundry-tui.git
+cd foundry-tui
 cargo run
 ```
 
