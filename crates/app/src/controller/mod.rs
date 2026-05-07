@@ -7,7 +7,7 @@ use foundry_tui_config::{
 
 use crate::{
     job_manager::JobManager,
-    model::{AppModel, LogLine, LogStream, SectionFocus, Tab},
+    model::{AppModel, LogLine, LogStream, LogTextMode, SectionFocus, Tab},
     parsing::rpc_chain_label,
     project_inventory::scan_project_inventory,
 };
@@ -75,10 +75,13 @@ impl AppController {
             palette_actions: ActionId::palette_defaults(),
             show_build_onboarding: true,
             mouse_mode_enabled: false,
+            log_text_mode: LogTextMode::Horizontal,
             main_scroll: 0,
             jobs_scroll: 0,
             logs_scroll: 0,
             anvil_logs_scroll: 0,
+            logs_hscroll: 0,
+            anvil_logs_hscroll: 0,
             notification: None,
             key_hints: config.keys.bindings.clone(),
             project_root,

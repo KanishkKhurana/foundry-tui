@@ -1,4 +1,4 @@
-use foundry_tui_app::{AppModel, LogStream, SectionFocus};
+use foundry_tui_app::{AppModel, LogLine, LogStream, LogTextMode, SectionFocus};
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Modifier, Style},
@@ -9,6 +9,7 @@ use ratatui::{
 
 use crate::{
     layout_utils::{bottom_window, centered_window, top_window},
+    log_text::{horizontal_slice, max_horizontal_offset, wrap_text},
     theme::UiTheme,
 };
 
@@ -201,28 +202,32 @@ pub(super) fn render_anvil_dashboard(
     frame.render_widget(instance_panel, split[0]);
 
     let mut log_lines = Vec::new();
+    let log_content_width = split[1].width.saturating_sub(4) as usize;
     if let Some(instance) = model.anvil_instances.get(model.selected_anvil_index) {
         let visible = split[1].height.saturating_sub(3) as usize;
-        let (start, end) = bottom_window(instance.logs.len(), model.anvil_logs_scroll, visible);
-        for entry in &instance.logs[start..end] {
-            let stream_label = match entry.stream {
-                LogStream::System => "[sys] ".to_string(),
-                LogStream::Stdout => "[out] ".to_string(),
-                LogStream::Stderr => "[in] ".to_string(),
-            };
-            let stream_color = if matches!(entry.stream, LogStream::System) {
-                theme.muted
-            } else {
-                theme.instance_logs_prefix
-            };
-            log_lines.push(ListItem::new(Line::from(vec![
-                Span::styled(
-                    format!("{} ", entry.ts.format("%H:%M:%S")),
-                    Style::default().fg(theme.instance_logs_prefix),
-                ),
-                Span::styled(stream_label, Style::default().fg(stream_color)),
-                Span::styled(entry.message.clone(), Style::default().fg(theme.foreground)),
-            ])));
+        if model.log_text_mode == LogTextMode::Horizontal {
+            let (start, end) = bottom_window(instance.logs.len(), model.anvil_logs_scroll, visible);
+            for entry in &instance.logs[start..end] {
+                log_lines.push(anvil_log_line_horizontal(
+                    entry,
+                    model.anvil_logs_hscroll,
+                    log_content_width,
+                    theme,
+                ));
+            }
+        } else {
+            let mut visual_lines = Vec::new();
+            for entry in &instance.logs {
+                visual_lines.extend(anvil_log_lines_wrapped(entry, log_content_width, theme));
+            }
+            let (start, end) = bottom_window(visual_lines.len(), model.anvil_logs_scroll, visible);
+            for line in visual_lines
+                .into_iter()
+                .skip(start)
+                .take(end.saturating_sub(start))
+            {
+                log_lines.push(line);
+            }
         }
     } else {
         log_lines.push(ListItem::new(Line::from(Span::styled(
@@ -231,17 +236,21 @@ pub(super) fn render_anvil_dashboard(
         ))));
     }
 
+    let mode_badge = format!("[{}]", model.log_text_mode.short_label());
     let logs_title = if let Some(instance) = model.anvil_instances.get(model.selected_anvil_index) {
         if let Some(fork) = &instance.fork_url {
             format!(
-                "Instance Logs: {} :{} (fork: {})",
-                instance.name, instance.port, fork
+                "Instance Logs: {} :{} (fork: {}) {}",
+                instance.name, instance.port, fork, mode_badge
             )
         } else {
-            format!("Instance Logs: {} :{}", instance.name, instance.port)
+            format!(
+                "Instance Logs: {} :{} {}",
+                instance.name, instance.port, mode_badge
+            )
         }
     } else {
-        "Instance Logs".to_string()
+        format!("Instance Logs {}", mode_badge)
     };
 
     let logs_panel = List::new(log_lines).block(
@@ -301,25 +310,31 @@ pub(super) fn render_jobs(frame: &mut Frame<'_>, area: Rect, model: &AppModel, t
 
 pub(super) fn render_logs(frame: &mut Frame<'_>, area: Rect, model: &AppModel, theme: UiTheme) {
     let visible_rows = area.height.saturating_sub(2) as usize;
-    let total = model.logs.len();
+    let log_content_width = area.width.saturating_sub(4) as usize;
 
-    let (start, end) = bottom_window(total, model.logs_scroll, visible_rows);
-
-    let items = model.logs[start..end]
-        .iter()
-        .map(|entry| {
-            ListItem::new(Line::from(vec![
-                Span::styled(
-                    format!("{} ", entry.ts.format("%H:%M:%S")),
-                    Style::default().fg(theme.muted),
-                ),
-                Span::styled(entry.message.clone(), Style::default().fg(theme.foreground)),
-            ]))
-        })
-        .collect::<Vec<_>>();
+    let items = if model.log_text_mode == LogTextMode::Horizontal {
+        let (start, end) = bottom_window(model.logs.len(), model.logs_scroll, visible_rows);
+        model.logs[start..end]
+            .iter()
+            .map(|entry| {
+                global_log_line_horizontal(entry, model.logs_hscroll, log_content_width, theme)
+            })
+            .collect::<Vec<_>>()
+    } else {
+        let mut visual_lines = Vec::new();
+        for entry in &model.logs {
+            visual_lines.extend(global_log_lines_wrapped(entry, log_content_width, theme));
+        }
+        let (start, end) = bottom_window(visual_lines.len(), model.logs_scroll, visible_rows);
+        visual_lines
+            .into_iter()
+            .skip(start)
+            .take(end.saturating_sub(start))
+            .collect::<Vec<_>>()
+    };
 
     let title = panel_title(
-        "Logs".to_string(),
+        format!("Logs [{}]", model.log_text_mode.short_label()),
         matches!(model.focused_section, SectionFocus::LogsPanel),
     );
 
@@ -333,4 +348,134 @@ pub(super) fn render_logs(frame: &mut Frame<'_>, area: Rect, model: &AppModel, t
     );
 
     frame.render_widget(widget, area);
+}
+
+fn anvil_log_line_horizontal(
+    entry: &LogLine,
+    horizontal_offset: usize,
+    content_width: usize,
+    theme: UiTheme,
+) -> ListItem<'static> {
+    let stream_label = match entry.stream {
+        LogStream::System => "[sys] ",
+        LogStream::Stdout => "[out] ",
+        LogStream::Stderr => "[in] ",
+    };
+    let stream_color = if matches!(entry.stream, LogStream::System) {
+        theme.muted
+    } else {
+        theme.instance_logs_prefix
+    };
+    let timestamp = format!("{} ", entry.ts.format("%H:%M:%S"));
+    let prefix_chars = timestamp.chars().count() + stream_label.chars().count();
+    let message_width = content_width.saturating_sub(prefix_chars).max(1);
+    let clamped_offset =
+        horizontal_offset.min(max_horizontal_offset(&entry.message, message_width));
+    let visible_message = horizontal_slice(&entry.message, clamped_offset, message_width);
+
+    ListItem::new(Line::from(vec![
+        Span::styled(timestamp, Style::default().fg(theme.instance_logs_prefix)),
+        Span::styled(stream_label.to_string(), Style::default().fg(stream_color)),
+        Span::styled(visible_message, Style::default().fg(theme.foreground)),
+    ]))
+}
+
+fn anvil_log_lines_wrapped(
+    entry: &LogLine,
+    content_width: usize,
+    theme: UiTheme,
+) -> Vec<ListItem<'static>> {
+    let stream_label = match entry.stream {
+        LogStream::System => "[sys] ",
+        LogStream::Stdout => "[out] ",
+        LogStream::Stderr => "[in] ",
+    };
+    let stream_color = if matches!(entry.stream, LogStream::System) {
+        theme.muted
+    } else {
+        theme.instance_logs_prefix
+    };
+    let timestamp = format!("{} ", entry.ts.format("%H:%M:%S"));
+    let continuation_prefix = " ".repeat(timestamp.chars().count() + stream_label.chars().count());
+    let message_width = content_width
+        .saturating_sub(timestamp.chars().count() + stream_label.chars().count())
+        .max(1);
+    let chunks = wrap_text(&entry.message, message_width);
+
+    let mut lines = Vec::new();
+    for (index, chunk) in chunks.into_iter().enumerate() {
+        if index == 0 {
+            lines.push(ListItem::new(Line::from(vec![
+                Span::styled(
+                    timestamp.clone(),
+                    Style::default().fg(theme.instance_logs_prefix),
+                ),
+                Span::styled(stream_label.to_string(), Style::default().fg(stream_color)),
+                Span::styled(chunk, Style::default().fg(theme.foreground)),
+            ])));
+        } else {
+            lines.push(ListItem::new(Line::from(vec![
+                Span::styled(
+                    continuation_prefix.clone(),
+                    Style::default().fg(theme.instance_logs_prefix),
+                ),
+                Span::styled(chunk, Style::default().fg(theme.foreground)),
+            ])));
+        }
+    }
+
+    lines
+}
+
+fn global_log_line_horizontal(
+    entry: &LogLine,
+    horizontal_offset: usize,
+    content_width: usize,
+    theme: UiTheme,
+) -> ListItem<'static> {
+    let timestamp = format!("{} ", entry.ts.format("%H:%M:%S"));
+    let message_width = content_width
+        .saturating_sub(timestamp.chars().count())
+        .max(1);
+    let clamped_offset =
+        horizontal_offset.min(max_horizontal_offset(&entry.message, message_width));
+    let visible_message = horizontal_slice(&entry.message, clamped_offset, message_width);
+
+    ListItem::new(Line::from(vec![
+        Span::styled(timestamp, Style::default().fg(theme.muted)),
+        Span::styled(visible_message, Style::default().fg(theme.foreground)),
+    ]))
+}
+
+fn global_log_lines_wrapped(
+    entry: &LogLine,
+    content_width: usize,
+    theme: UiTheme,
+) -> Vec<ListItem<'static>> {
+    let timestamp = format!("{} ", entry.ts.format("%H:%M:%S"));
+    let continuation_prefix = " ".repeat(timestamp.chars().count());
+    let message_width = content_width
+        .saturating_sub(timestamp.chars().count())
+        .max(1);
+    let chunks = wrap_text(&entry.message, message_width);
+
+    let mut lines = Vec::new();
+    for (index, chunk) in chunks.into_iter().enumerate() {
+        if index == 0 {
+            lines.push(ListItem::new(Line::from(vec![
+                Span::styled(timestamp.clone(), Style::default().fg(theme.muted)),
+                Span::styled(chunk, Style::default().fg(theme.foreground)),
+            ])));
+        } else {
+            lines.push(ListItem::new(Line::from(vec![
+                Span::styled(
+                    continuation_prefix.clone(),
+                    Style::default().fg(theme.muted),
+                ),
+                Span::styled(chunk, Style::default().fg(theme.foreground)),
+            ])));
+        }
+    }
+
+    lines
 }

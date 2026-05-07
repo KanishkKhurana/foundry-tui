@@ -8,5 +8,5 @@ pub use controller::AppController;
 pub use model::{
     AnvilInstance, AnvilInstanceStatus, AnvilLaunchPrompt, AnvilPromptField, AppModel,
     CustomCommandDraft, CustomCommandModal, CustomModalStep, JobRecord, JobStatus, LogLine,
-    LogStream, SectionFocus, Tab,
+    LogStream, LogTextMode, SectionFocus, Tab,
 };

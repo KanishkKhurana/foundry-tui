@@ -37,7 +37,7 @@ pub fn draw(frame: &mut Frame<'_>, model: &AppModel, theme: UiTheme) {
 
     let middle = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(68), Constraint::Percentage(32)])
+        .constraints([Constraint::Percentage(76), Constraint::Percentage(24)])
         .split(outer[1]);
 
     tabs::render_active_tab(frame, middle[0], model, theme);

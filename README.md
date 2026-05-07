@@ -72,8 +72,11 @@ Across chain RPC presets are available as `across-<chain>-<chainId>` keys (for e
 - `a`: open anvil launch form
 - `shift+a`: stop anvil
 - `up` / `down`: scroll focused section
+- `left` / `right`: horizontal scroll in focused log panes (horizontal mode)
+- `w`: toggle log text mode (`horizontal` / `wrapped`)
 - mouse wheel: scroll focused section (or command palette list)
 - mouse move: auto-focus pane under cursor
+- right-click (while mouse mode is on): switch to text selection mode
 - `f2`: toggle mouse interaction mode (use text selection mode when you need to copy terminal text)
 - `ctrl+j` / `ctrl+k`: focus next/previous section
 

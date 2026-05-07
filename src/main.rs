@@ -1,7 +1,9 @@
 use std::time::Duration;
 
 use anyhow::Result;
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, MouseEvent, MouseEventKind};
+use crossterm::event::{
+    self, Event, KeyCode, KeyEvent, KeyEventKind, MouseButton, MouseEvent, MouseEventKind,
+};
 use foundry_tui_app::AppController;
 use foundry_tui_config::{load_or_create, load_templates, ConfigLoadState};
 use foundry_tui_foundry::ToolEvent;
@@ -81,6 +83,16 @@ async fn main() -> Result<()> {
                     }
                     InputEvent::Mouse(mouse) => {
                         if mouse_capture_enabled {
+                            if matches!(mouse.kind, MouseEventKind::Down(MouseButton::Right)) {
+                                mouse_capture_enabled = false;
+                                set_mouse_capture(mouse_capture_enabled)?;
+                                controller.model.mouse_mode_enabled = mouse_capture_enabled;
+                                controller.model.notification = Some(
+                                    "text selection mode enabled via right-click. press F2 to re-enable mouse interactions".to_string(),
+                                );
+                                continue;
+                            }
+
                             if should_focus_from_mouse(mouse.kind) {
                                 let viewport = terminal.size()?;
                                 if let Some(section) = section_at_position(

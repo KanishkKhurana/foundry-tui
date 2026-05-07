@@ -17,6 +17,7 @@ pub enum ActionId {
     FocusPrevSection,
     OpenPalette,
     ToggleBuildOnboarding,
+    ToggleLogWrapMode,
     OpenThemePicker,
     ThemeNext,
     ThemePrev,
@@ -44,6 +45,7 @@ impl ActionId {
             ActionId::FocusPrevSection => "Focus Previous Section",
             ActionId::OpenPalette => "Command Palette",
             ActionId::ToggleBuildOnboarding => "Toggle Build Onboarding",
+            ActionId::ToggleLogWrapMode => "Toggle Log Wrap Mode",
             ActionId::OpenThemePicker => "Legacy Theme Picker",
             ActionId::ThemeNext => "Legacy Theme Next",
             ActionId::ThemePrev => "Legacy Theme Previous",
@@ -147,6 +149,7 @@ impl Default for KeyConfig {
         bindings.insert(ActionId::FocusNextSection, "ctrl+j".to_string());
         bindings.insert(ActionId::FocusPrevSection, "ctrl+k".to_string());
         bindings.insert(ActionId::OpenPalette, "ctrl+p".to_string());
+        bindings.insert(ActionId::ToggleLogWrapMode, "w".to_string());
         bindings.insert(ActionId::RunCustomCommand, "x".to_string());
         bindings.insert(ActionId::RunBuild, "b".to_string());
         bindings.insert(ActionId::RunTest, "t".to_string());
@@ -963,6 +966,7 @@ mod tests {
             .bindings
             .contains_key(&ActionId::RunFoundryupUpdate));
         assert!(cfg.keys.bindings.contains_key(&ActionId::OpenPalette));
+        assert!(cfg.keys.bindings.contains_key(&ActionId::ToggleLogWrapMode));
         assert!(cfg.keys.bindings.contains_key(&ActionId::FocusNextSection));
         assert!(cfg.keys.bindings.contains_key(&ActionId::FocusPrevSection));
         assert!(cfg.ui.show_build_onboarding);
@@ -1025,6 +1029,7 @@ mod tests {
         let mut cfg = AppConfig::default();
         cfg.keys.bindings.remove(&ActionId::FocusNextSection);
         cfg.keys.bindings.remove(&ActionId::FocusPrevSection);
+        cfg.keys.bindings.remove(&ActionId::ToggleLogWrapMode);
         cfg.keys
             .bindings
             .insert(ActionId::ToggleBuildOnboarding, "?".to_string());
@@ -1033,6 +1038,7 @@ mod tests {
 
         assert!(cfg.keys.bindings.contains_key(&ActionId::FocusNextSection));
         assert!(cfg.keys.bindings.contains_key(&ActionId::FocusPrevSection));
+        assert!(cfg.keys.bindings.contains_key(&ActionId::ToggleLogWrapMode));
         assert!(!cfg
             .keys
             .bindings

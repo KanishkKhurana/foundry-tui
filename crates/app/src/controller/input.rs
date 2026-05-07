@@ -30,6 +30,20 @@ impl AppController {
             return;
         }
 
+        match key.code {
+            KeyCode::Left => {
+                if self.scroll_focused_section_horizontal(false) {
+                    return;
+                }
+            }
+            KeyCode::Right => {
+                if self.scroll_focused_section_horizontal(true) {
+                    return;
+                }
+            }
+            _ => {}
+        }
+
         if let Some(action) = self.resolve_action(key) {
             self.execute_action(action, tool_events);
         }
@@ -371,11 +385,11 @@ mod tests {
     use std::path::PathBuf;
 
     use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseEvent, MouseEventKind};
-    use foundry_tui_config::AppConfig;
+    use foundry_tui_config::{ActionId, AppConfig};
     use foundry_tui_foundry::ToolEvent;
     use tokio::sync::mpsc::unbounded_channel;
 
-    use crate::model::SectionFocus;
+    use crate::model::{LogLine, LogStream, SectionFocus};
 
     use super::AppController;
 
@@ -453,5 +467,111 @@ mod tests {
             &events_tx,
         );
         assert!(controller.model.show_build_onboarding);
+    }
+
+    #[test]
+    fn w_toggles_log_wrap_mode() {
+        let config = AppConfig::default();
+        let mut controller = AppController::new(config, PathBuf::from("."), PathBuf::from("cfg"));
+        let (events_tx, _events_rx) = unbounded_channel::<ToolEvent>();
+
+        assert_eq!(controller.model.log_text_mode.label(), "horizontal");
+        controller.handle_key(
+            KeyEvent::new(KeyCode::Char('w'), KeyModifiers::NONE),
+            &events_tx,
+        );
+        assert_eq!(controller.model.log_text_mode.label(), "wrapped");
+        controller.handle_key(
+            KeyEvent::new(KeyCode::Char('w'), KeyModifiers::NONE),
+            &events_tx,
+        );
+        assert_eq!(controller.model.log_text_mode.label(), "horizontal");
+    }
+
+    #[test]
+    fn right_left_scrolls_logs_panel_horizontally_when_horizontal_mode() {
+        let config = AppConfig::default();
+        let mut controller = AppController::new(config, PathBuf::from("."), PathBuf::from("cfg"));
+        let (events_tx, _events_rx) = unbounded_channel::<ToolEvent>();
+        controller.model.focused_section = SectionFocus::LogsPanel;
+        controller.model.logs.push(LogLine {
+            ts: chrono::Local::now(),
+            job_id: None,
+            stream: LogStream::Stdout,
+            message: "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+                .to_string(),
+        });
+
+        controller.handle_key(
+            KeyEvent::new(KeyCode::Right, KeyModifiers::NONE),
+            &events_tx,
+        );
+        assert_eq!(controller.model.logs_hscroll, 8);
+
+        controller.handle_key(KeyEvent::new(KeyCode::Left, KeyModifiers::NONE), &events_tx);
+        assert_eq!(controller.model.logs_hscroll, 0);
+    }
+
+    #[test]
+    fn right_left_noop_in_wrapped_mode() {
+        let mut config = AppConfig::default();
+        config
+            .keys
+            .bindings
+            .insert(ActionId::ToggleLogWrapMode, "w".to_string());
+        let mut controller = AppController::new(config, PathBuf::from("."), PathBuf::from("cfg"));
+        let (events_tx, _events_rx) = unbounded_channel::<ToolEvent>();
+        controller.model.focused_section = SectionFocus::LogsPanel;
+        controller.model.logs.push(LogLine {
+            ts: chrono::Local::now(),
+            job_id: None,
+            stream: LogStream::Stdout,
+            message: "0xabcdef".to_string(),
+        });
+
+        controller.handle_key(
+            KeyEvent::new(KeyCode::Char('w'), KeyModifiers::NONE),
+            &events_tx,
+        );
+        assert_eq!(controller.model.log_text_mode.label(), "wrapped");
+
+        controller.handle_key(
+            KeyEvent::new(KeyCode::Right, KeyModifiers::NONE),
+            &events_tx,
+        );
+        assert_eq!(controller.model.logs_hscroll, 0);
+    }
+
+    #[test]
+    fn right_left_scrolls_selected_anvil_logs_horizontally() {
+        let config = AppConfig::default();
+        let mut controller = AppController::new(config, PathBuf::from("."), PathBuf::from("cfg"));
+        let (events_tx, _events_rx) = unbounded_channel::<ToolEvent>();
+        controller.model.focused_section = SectionFocus::AnvilInstanceLogsPanel;
+        controller
+            .model
+            .anvil_instances
+            .push(crate::model::AnvilInstance {
+                job_id: 1,
+                name: "anvil-1".to_string(),
+                port: 8545,
+                fork_url: None,
+                status: crate::model::AnvilInstanceStatus::Running,
+                logs: vec![LogLine {
+                    ts: chrono::Local::now(),
+                    job_id: Some(1),
+                    stream: LogStream::Stdout,
+                    message: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                        .to_string(),
+                }],
+            });
+
+        controller.handle_key(
+            KeyEvent::new(KeyCode::Right, KeyModifiers::NONE),
+            &events_tx,
+        );
+        assert_eq!(controller.model.anvil_logs_hscroll, 8);
+        controller.handle_key(KeyEvent::new(KeyCode::Left, KeyModifiers::NONE), &events_tx);
+        assert_eq!(controller.model.anvil_logs_hscroll, 0);
     }
 }

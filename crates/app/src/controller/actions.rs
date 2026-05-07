@@ -5,7 +5,7 @@ use foundry_tui_foundry::{ToolEvent, ToolKind};
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    model::{LogLine, LogStream, SectionFocus, Tab},
+    model::{LogLine, LogStream, LogTextMode, SectionFocus, Tab},
     parsing::{is_non_evm_preset, key_matches, rpc_chain_label},
 };
 
@@ -38,6 +38,13 @@ impl AppController {
             ActionId::ToggleBuildOnboarding => {
                 self.model.show_build_onboarding = true;
                 self.model.notification = Some("build onboarding is always visible".to_string());
+            }
+            ActionId::ToggleLogWrapMode => {
+                self.model.log_text_mode = self.model.log_text_mode.toggle();
+                self.model.notification = Some(format!(
+                    "log text mode: {}",
+                    self.model.log_text_mode.label()
+                ));
             }
             ActionId::OpenThemePicker | ActionId::ThemeNext | ActionId::ThemePrev => {
                 self.model.notification = Some(
@@ -100,6 +107,82 @@ impl AppController {
             ActionId::StopAnvil => self.stop_anvil(),
             ActionId::ScrollLogsUp => self.scroll_focused_section(false),
             ActionId::ScrollLogsDown => self.scroll_focused_section(true),
+        }
+    }
+
+    pub(crate) fn scroll_focused_section_horizontal(&mut self, right: bool) -> bool {
+        if self.model.log_text_mode != LogTextMode::Horizontal {
+            return false;
+        }
+
+        const HSCROLL_STEP: usize = 8;
+
+        match self.model.focused_section {
+            SectionFocus::LogsPanel => {
+                let max_offset = self
+                    .model
+                    .logs
+                    .iter()
+                    .map(|entry| entry.message.chars().count())
+                    .max()
+                    .unwrap_or(0);
+                if right {
+                    self.model.logs_hscroll = self
+                        .model
+                        .logs_hscroll
+                        .saturating_add(HSCROLL_STEP)
+                        .min(max_offset);
+                } else {
+                    self.model.logs_hscroll = self.model.logs_hscroll.saturating_sub(HSCROLL_STEP);
+                }
+                true
+            }
+            SectionFocus::AnvilInstanceLogsPanel => {
+                let max_offset = self
+                    .model
+                    .anvil_instances
+                    .get(self.model.selected_anvil_index)
+                    .map(|instance| {
+                        instance
+                            .logs
+                            .iter()
+                            .map(|entry| entry.message.chars().count())
+                            .max()
+                            .unwrap_or(0)
+                    })
+                    .unwrap_or(0);
+                if right {
+                    self.model.anvil_logs_hscroll = self
+                        .model
+                        .anvil_logs_hscroll
+                        .saturating_add(HSCROLL_STEP)
+                        .min(max_offset);
+                } else {
+                    self.model.anvil_logs_hscroll =
+                        self.model.anvil_logs_hscroll.saturating_sub(HSCROLL_STEP);
+                }
+                true
+            }
+            SectionFocus::MainPanel if self.model.active_tab == Tab::Logs => {
+                let max_offset = self
+                    .model
+                    .logs
+                    .iter()
+                    .map(|entry| entry.message.chars().count())
+                    .max()
+                    .unwrap_or(0);
+                if right {
+                    self.model.logs_hscroll = self
+                        .model
+                        .logs_hscroll
+                        .saturating_add(HSCROLL_STEP)
+                        .min(max_offset);
+                } else {
+                    self.model.logs_hscroll = self.model.logs_hscroll.saturating_sub(HSCROLL_STEP);
+                }
+                true
+            }
+            _ => false,
         }
     }
 

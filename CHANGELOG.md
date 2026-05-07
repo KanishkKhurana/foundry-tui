@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.0.4] - 2026-05-07
+
+### Added
+- Dual log text mode for long outputs in log panes: default horizontal mode for copy-safe values and wrapped mode toggle (`w`).
+- Horizontal scrolling for long log lines in focused log panes with `← / →`.
+- Right-click shortcut to switch from mouse-interaction mode to text-selection mode.
+
+### Changed
+- Anvil logs and global logs now show a mode badge (`[H]` / `[W]`) and preserve long-value visibility in small panes.
+- Job Queue pane width reduced from 32% to 24% for more main workspace space.
+
 ## [0.0.3] - 2026-05-07
 
 ### Changed

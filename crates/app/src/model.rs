@@ -209,6 +209,35 @@ pub struct CustomCommandModal {
     pub error: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LogTextMode {
+    Horizontal,
+    Wrapped,
+}
+
+impl LogTextMode {
+    pub fn toggle(self) -> Self {
+        match self {
+            LogTextMode::Horizontal => LogTextMode::Wrapped,
+            LogTextMode::Wrapped => LogTextMode::Horizontal,
+        }
+    }
+
+    pub fn short_label(self) -> &'static str {
+        match self {
+            LogTextMode::Horizontal => "H",
+            LogTextMode::Wrapped => "W",
+        }
+    }
+
+    pub fn label(self) -> &'static str {
+        match self {
+            LogTextMode::Horizontal => "horizontal",
+            LogTextMode::Wrapped => "wrapped",
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct AppModel {
     pub active_tab: Tab,
@@ -222,10 +251,13 @@ pub struct AppModel {
     pub palette_actions: Vec<ActionId>,
     pub show_build_onboarding: bool,
     pub mouse_mode_enabled: bool,
+    pub log_text_mode: LogTextMode,
     pub main_scroll: usize,
     pub jobs_scroll: usize,
     pub logs_scroll: usize,
     pub anvil_logs_scroll: usize,
+    pub logs_hscroll: usize,
+    pub anvil_logs_hscroll: usize,
     pub notification: Option<String>,
     pub key_hints: BTreeMap<ActionId, String>,
     pub project_root: PathBuf,

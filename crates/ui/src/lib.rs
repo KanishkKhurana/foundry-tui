@@ -1,5 +1,6 @@
 mod hit_test;
 mod layout_utils;
+mod log_text;
 mod render;
 mod style_utils;
 mod terminal;

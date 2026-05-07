@@ -14,7 +14,7 @@ use super::common::key_for;
 
 pub(super) fn render_footer(frame: &mut Frame<'_>, area: Rect, model: &AppModel, theme: UiTheme) {
     let mouse_hint = if model.mouse_mode_enabled {
-        "F2 mouse:on"
+        "F2 mouse:on (RClick select)"
     } else {
         "F2 mouse:off (select)"
     };
@@ -62,6 +62,13 @@ pub(super) fn render_footer(frame: &mut Frame<'_>, area: Rect, model: &AppModel,
             ),
             Style::default().fg(theme.accent),
         ),
+        Span::styled("  Log Mode ", Style::default().fg(theme.muted)),
+        Span::styled(
+            key_for(model, ActionId::ToggleLogWrapMode),
+            Style::default().fg(theme.accent),
+        ),
+        Span::styled("  H-Scroll ", Style::default().fg(theme.muted)),
+        Span::styled("← / →", Style::default().fg(theme.accent)),
         Span::styled("  Mouse ", Style::default().fg(theme.muted)),
         Span::styled(
             mouse_hint,

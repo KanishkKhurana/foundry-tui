@@ -34,7 +34,7 @@ pub fn section_at_position(
 
     let middle = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(68), Constraint::Percentage(32)])
+        .constraints([Constraint::Percentage(76), Constraint::Percentage(24)])
         .split(outer[1]);
 
     if rect_contains(middle[1], column, row) {
