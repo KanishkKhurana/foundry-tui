@@ -6,7 +6,7 @@ Application state + controller crate for `foundry-tui`.
 
 - Defines the core runtime model (`AppModel`, job/anvil/custom modal state).
 - Owns `AppController` orchestration for input handling, workflow actions, and job lifecycle.
-- Builds and validates Forge builder commands before dispatch.
+- Builds and validates command-builder runs for Forge and Cast before dispatch.
 - Tracks workspace inventory (`.sol` files, foundry config/remappings presence).
 
 ## Internal module layout

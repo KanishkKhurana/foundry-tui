@@ -174,12 +174,19 @@ pub(crate) fn convert_angle_placeholder_token(token: &str) -> String {
         return token.to_string();
     };
 
-    let normalized = sanitize_placeholder_name(inner);
+    let normalized = canonical_placeholder_name(&sanitize_placeholder_name(inner));
     if normalized.is_empty() {
         return token.to_string();
     }
 
     format!("{{{{{normalized}}}}}")
+}
+
+fn canonical_placeholder_name(value: &str) -> String {
+    match value {
+        "counter_addr" | "counter_address" => "contract_address".to_string(),
+        _ => value.to_string(),
+    }
 }
 
 fn sanitize_placeholder_name(value: &str) -> String {
@@ -217,7 +224,8 @@ fn sanitize_placeholder_name(value: &str) -> String {
 }
 
 pub(crate) fn infer_param_meta(name: &str) -> TemplateParamMeta {
-    let lower = name.to_lowercase();
+    let canonical = canonical_placeholder_name(name);
+    let lower = canonical.to_lowercase();
     let kind = if lower.contains("addr") || lower.contains("address") {
         TemplateParamKind::Address
     } else if lower.contains("amount") || lower.contains("nonce") || lower.contains("id") {
@@ -234,7 +242,8 @@ pub(crate) fn infer_param_meta(name: &str) -> TemplateParamMeta {
         || lower.contains("password");
 
     let label = Some(
-        name.split('_')
+        canonical
+            .split('_')
             .filter(|part| !part.is_empty())
             .map(|part| {
                 let mut chars = part.chars();
@@ -573,5 +582,17 @@ mod tests {
                 "-vv".to_string()
             ]
         );
+    }
+
+    #[test]
+    fn counter_addr_aliases_normalize_to_contract_address() {
+        assert_eq!(
+            convert_angle_placeholder_token("<COUNTER_ADDR>"),
+            "{{contract_address}}".to_string()
+        );
+
+        let meta = infer_param_meta("counter_addr");
+        assert_eq!(meta.label.as_deref(), Some("Contract Address"));
+        assert_eq!(meta.kind, TemplateParamKind::Address);
     }
 }

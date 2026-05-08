@@ -245,7 +245,10 @@ impl AppController {
             }
             KeyCode::Left => {
                 if modal.editor_index == 0 {
-                    let previous_rpc_url = self.rpc_url_for_preset(&draft.rpc_preset);
+                    let previous_rpc_url = draft
+                        .rpc_url
+                        .clone()
+                        .or_else(|| self.rpc_url_for_preset(&draft.rpc_preset));
                     self.cycle_rpc_preset(&mut draft.rpc_preset, false);
                     self.sync_draft_rpc_url_with_preset(draft, previous_rpc_url);
                 }
@@ -253,7 +256,10 @@ impl AppController {
             }
             KeyCode::Right => {
                 if modal.editor_index == 0 {
-                    let previous_rpc_url = self.rpc_url_for_preset(&draft.rpc_preset);
+                    let previous_rpc_url = draft
+                        .rpc_url
+                        .clone()
+                        .or_else(|| self.rpc_url_for_preset(&draft.rpc_preset));
                     self.cycle_rpc_preset(&mut draft.rpc_preset, true);
                     self.sync_draft_rpc_url_with_preset(draft, previous_rpc_url);
                 }
@@ -268,7 +274,10 @@ impl AppController {
                         &draft.template,
                         &draft.param_values,
                         &placeholder,
-                        self.rpc_url_for_preset(&draft.rpc_preset),
+                        draft
+                            .rpc_url
+                            .clone()
+                            .or_else(|| self.rpc_url_for_preset(&draft.rpc_preset)),
                     );
                     let entry = draft.param_values.entry(placeholder).or_insert(initial);
                     entry.pop();
@@ -284,7 +293,10 @@ impl AppController {
                         &draft.template,
                         &draft.param_values,
                         &placeholder,
-                        self.rpc_url_for_preset(&draft.rpc_preset),
+                        draft
+                            .rpc_url
+                            .clone()
+                            .or_else(|| self.rpc_url_for_preset(&draft.rpc_preset)),
                     );
                     let entry = draft.param_values.entry(placeholder).or_insert(initial);
                     entry.push(ch);

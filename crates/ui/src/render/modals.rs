@@ -122,10 +122,10 @@ pub(super) fn render_custom_modal(frame: &mut Frame<'_>, model: &AppModel, theme
 
     let title = match modal.step {
         CustomModalStep::TemplatePicker => {
-            let title = "Forge Builder: Preset Picker";
+            let title = "Command Builder: Preset Picker (forge and cast only)";
             if modal.paste_mode {
                 lines.push(Line::from(Span::styled(
-                    "Paste full forge command",
+                    "Paste full forge or cast command",
                     Style::default()
                         .fg(theme.accent)
                         .add_modifier(Modifier::BOLD),
@@ -145,12 +145,12 @@ pub(super) fn render_custom_modal(frame: &mut Frame<'_>, model: &AppModel, theme
                 )));
                 lines.push(Line::from(""));
                 lines.push(Line::from(Span::styled(
-                    "Enter: parse forge command  |  Esc: back to preset list",
+                    "Enter: parse command  |  Esc: back to preset list",
                     Style::default().fg(theme.muted),
                 )));
             } else {
                 lines.push(Line::from(Span::styled(
-                    "Select a forge preset",
+                    "Select a saved preset",
                     Style::default()
                         .fg(theme.accent)
                         .add_modifier(Modifier::BOLD),
@@ -166,7 +166,7 @@ pub(super) fn render_custom_modal(frame: &mut Frame<'_>, model: &AppModel, theme
                             .add_modifier(Modifier::BOLD),
                     ),
                     Span::styled(
-                        "Paste full forge command",
+                        "Paste full forge or cast command",
                         Style::default().fg(theme.foreground),
                     ),
                 ]));
@@ -197,7 +197,7 @@ pub(super) fn render_custom_modal(frame: &mut Frame<'_>, model: &AppModel, theme
 
                 if model.custom_templates.is_empty() {
                     lines.push(Line::from(Span::styled(
-                        "No saved forge presets found yet.",
+                        "No saved forge/cast presets found yet.",
                         Style::default().fg(theme.warning),
                     )));
                 }
@@ -211,7 +211,7 @@ pub(super) fn render_custom_modal(frame: &mut Frame<'_>, model: &AppModel, theme
             title
         }
         CustomModalStep::Editor => {
-            let title = "Forge Builder: Fill Form";
+            let title = "Command Builder: Fill Form";
             let Some(draft) = modal.draft.as_ref() else {
                 lines.push(Line::from("Missing draft state."));
                 lines.push(Line::from("Press Esc to return."));
@@ -384,7 +384,7 @@ pub(super) fn render_custom_modal(frame: &mut Frame<'_>, model: &AppModel, theme
             title
         }
         CustomModalStep::Preview => {
-            let title = "Forge Builder: Confirm Execution";
+            let title = "Command Builder: Confirm Execution";
             let Some(draft) = modal.draft.as_ref() else {
                 lines.push(Line::from("Missing draft state."));
                 lines.push(Line::from("Press Esc to return."));

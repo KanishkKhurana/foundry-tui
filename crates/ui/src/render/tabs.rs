@@ -169,7 +169,7 @@ pub(super) fn render_active_tab(
                         .add_modifier(Modifier::BOLD),
                 )),
                 Line::from(format!(
-                    "- {}: {}",
+                    "- broadcast txns: {}: {}",
                     key_for(model, ActionId::RunCustomCommand),
                     ActionId::RunCustomCommand.label()
                 )),
@@ -184,7 +184,7 @@ pub(super) fn render_active_tab(
                     ActionId::RunTest.label()
                 )),
                 Line::from(format!(
-                    "- {}: {}",
+                    "- dry-run only: {}: {}",
                     key_for(model, ActionId::RunScript),
                     ActionId::RunScript.label()
                 )),

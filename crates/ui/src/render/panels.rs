@@ -25,7 +25,7 @@ pub(super) fn render_custom_dashboard(
 ) {
     let mut lines = vec![
         Line::from(Span::styled(
-            "Forge Command Builder",
+            "Command Builder",
             Style::default()
                 .fg(theme.accent)
                 .add_modifier(Modifier::BOLD),
@@ -53,7 +53,7 @@ pub(super) fn render_custom_dashboard(
         )),
         Line::from(""),
         Line::from(format!(
-            "Open builder: {} or Ctrl+P → {}",
+            "Broadcast txns: {} or Ctrl+P → {}",
             key_for(model, ActionId::RunCustomCommand),
             ActionId::RunCustomCommand.label()
         )),
@@ -63,7 +63,7 @@ pub(super) fn render_custom_dashboard(
 
     if model.custom_templates.is_empty() {
         lines.push(Line::from(Span::styled(
-            "No forge presets available. Press builder key to paste a forge command.",
+            "No saved presets available. Press builder key to paste a forge or cast command.",
             Style::default().fg(theme.warning),
         )));
     } else {

@@ -48,12 +48,14 @@ impl AppController {
         let mut custom_templates = templates
             .templates
             .into_iter()
-            .filter(|template| matches!(template.tool, TemplateTool::Forge))
+            .filter(|template| matches!(template.tool, TemplateTool::Forge | TemplateTool::Cast))
             .collect::<Vec<_>>();
         if custom_templates.is_empty() {
             custom_templates = default_custom_templates()
                 .into_iter()
-                .filter(|template| matches!(template.tool, TemplateTool::Forge))
+                .filter(|template| {
+                    matches!(template.tool, TemplateTool::Forge | TemplateTool::Cast)
+                })
                 .collect();
         }
 

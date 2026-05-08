@@ -24,7 +24,7 @@ foundry-tui
 - Native CLI execution for `forge`, `cast`, `anvil`, `chisel`, `foundryup`
 - Multi-instance Anvil management with per-instance live blockchain log panes
 - Includes baked-in Across RPC presets from your provided chain list (no runtime API fetch)
-- Forge Command Builder with preset picker, full `forge ...` paste parser, form-based field editing, and preview/confirm flow
+- Command Builder with preset picker, full `forge ...` / `cast ...` paste parsing, form-based field editing, and preview/confirm flow
 - Global + project template loading (`~/.config/foundry-tui/templates.toml` + `./.foundry-tui/templates.toml`)
 - Secret placeholders are masked in form/preview/logs
 - Sensitive CLI values (private keys / API keys / 32-byte hex secrets) are redacted from job command previews and history
@@ -64,7 +64,7 @@ Across chain RPC presets are available as `across-<chain>-<chainId>` keys (for e
 - `b`: forge build
 - `t`: forge test
 - `s`: forge script
-- `x`: forge command builder
+- `x`: command builder
 - `c`: cast block number
 - `v`: forge verify check
 - `h`: chisel list
@@ -115,7 +115,7 @@ foundryup_update = ["--update"]
 anvil_start = ["--port", "8545"]
 ```
 
-## Forge Builder Presets
+## Command Builder Presets
 
 Global presets live at `~/.config/foundry-tui/templates.toml`.  
 Project presets (optional) live at `./.foundry-tui/templates.toml` and override global presets with the same `id`.
@@ -142,8 +142,9 @@ args_template = [
   "--broadcast",
   "--sig",
   "{{signature}}",
+  "--private-key",
   "{{deployer_private_key}}",
-  "{{counter_addr}}",
+  "{{contract_address}}",
   "-vv",
 ]
 
@@ -155,12 +156,14 @@ kind = "string"
 secret = true
 kind = "hex"
 
-[templates.params.counter_addr]
+[templates.params.contract_address]
 kind = "address"
 ```
 
-In the forge builder modal:
-- choose preset or paste a full forge command (`forge ...`)
+The command builder accepts both saved presets and pasted `forge ...` / `cast ...` commands.
+
+In the command builder modal:
+- choose preset or paste a full command (`forge ...` or `cast ...`)
 - fill a single form (`RPC Preset`, `Raw Args Tail`, template fields)
 - optional template fields are explicitly tagged as `[optional]`
 - add optional raw args tail (raw flags override template flags)

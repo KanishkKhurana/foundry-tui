@@ -49,7 +49,7 @@ impl ActionId {
             ActionId::OpenThemePicker => "Legacy Theme Picker",
             ActionId::ThemeNext => "Legacy Theme Next",
             ActionId::ThemePrev => "Legacy Theme Previous",
-            ActionId::RunCustomCommand => "Forge Command Builder",
+            ActionId::RunCustomCommand => "Command Builder",
             ActionId::RunBuild => "Forge Build",
             ActionId::RunTest => "Forge Test",
             ActionId::RunScript => "Forge Script",
@@ -537,6 +537,8 @@ fn load_template_file(path: &Path) -> Result<Vec<CustomTemplate>> {
     Ok(file
         .templates
         .into_iter()
+        .map(migrate_legacy_contract_address_placeholder)
+        .map(migrate_legacy_broadcast_private_key_template)
         .filter_map(CustomTemplate::normalized)
         .collect())
 }
@@ -547,9 +549,13 @@ fn merge_custom_templates(
 ) -> Vec<CustomTemplate> {
     let mut merged = BTreeMap::new();
     for template in global_templates {
+        let template = migrate_legacy_contract_address_placeholder(template);
+        let template = migrate_legacy_broadcast_private_key_template(template);
         merged.insert(template.id.clone(), template);
     }
     for template in project_templates {
+        let template = migrate_legacy_contract_address_placeholder(template);
+        let template = migrate_legacy_broadcast_private_key_template(template);
         merged.insert(template.id.clone(), template);
     }
 
@@ -566,6 +572,84 @@ fn merge_custom_templates(
     }
 
     ordered
+}
+
+fn migrate_legacy_contract_address_placeholder(mut template: CustomTemplate) -> CustomTemplate {
+    const LEGACY_PLACEHOLDERS: [&str; 2] = ["counter_addr", "counter_address"];
+    const CANONICAL_PLACEHOLDER: &str = "contract_address";
+
+    for token in &mut template.args_template {
+        for legacy in LEGACY_PLACEHOLDERS {
+            *token = token.replace(
+                &format!("{{{{{legacy}}}}}"),
+                &format!("{{{{{CANONICAL_PLACEHOLDER}}}}}"),
+            );
+        }
+    }
+
+    let mut legacy_meta = None;
+    for legacy in LEGACY_PLACEHOLDERS {
+        if let Some(meta) = template.params.remove(legacy) {
+            legacy_meta = Some(meta);
+        }
+    }
+
+    if let Some(meta) = legacy_meta {
+        template
+            .params
+            .entry(CANONICAL_PLACEHOLDER.to_string())
+            .or_insert(meta);
+    }
+
+    if let Some(meta) = template.params.get_mut(CANONICAL_PLACEHOLDER) {
+        if meta.label.is_none() {
+            meta.label = Some("Contract Address".to_string());
+        }
+        if matches!(meta.kind, TemplateParamKind::String) {
+            meta.kind = TemplateParamKind::Address;
+        }
+    }
+
+    template
+}
+
+fn migrate_legacy_broadcast_private_key_template(mut template: CustomTemplate) -> CustomTemplate {
+    if template.tool != TemplateTool::Forge {
+        return template;
+    }
+
+    let is_forge_script = template
+        .args_template
+        .first()
+        .is_some_and(|token| token == "script");
+    let has_broadcast = template
+        .args_template
+        .iter()
+        .any(|token| token == "--broadcast");
+    let has_private_key_placeholder = template
+        .args_template
+        .iter()
+        .any(|token| token.trim() == "{{deployer_private_key}}");
+    let has_private_key_flag = template
+        .args_template
+        .iter()
+        .any(|token| token == "--private-key" || token.starts_with("--private-key="));
+
+    if !is_forge_script || !has_broadcast || !has_private_key_placeholder || has_private_key_flag {
+        return template;
+    }
+
+    let mut migrated = Vec::with_capacity(template.args_template.len() + 1);
+    for token in template.args_template {
+        if token.trim() == "{{deployer_private_key}}" {
+            migrated.push("--private-key".to_string());
+            migrated.push(token);
+        } else {
+            migrated.push(token);
+        }
+    }
+    template.args_template = migrated;
+    template
 }
 
 pub fn default_custom_templates() -> Vec<CustomTemplate> {
@@ -732,6 +816,7 @@ pub fn default_custom_templates() -> Vec<CustomTemplate> {
                 "--broadcast".to_string(),
                 "--sig".to_string(),
                 "{{signature}}".to_string(),
+                "--private-key".to_string(),
                 "{{deployer_private_key}}".to_string(),
                 "{{verbosity}}".to_string(),
             ],
@@ -1064,6 +1149,14 @@ mod tests {
         assert!(templates
             .iter()
             .any(|template| template.id == "forge-verify-contract"));
+        let broadcast = templates
+            .iter()
+            .find(|template| template.id == "forge-script-broadcast")
+            .expect("expected forge-script-broadcast template");
+        assert!(broadcast
+            .args_template
+            .windows(2)
+            .any(|pair| pair[0] == "--private-key" && pair[1] == "{{deployer_private_key}}"));
 
         let _ = fs::remove_dir_all(temp_dir);
     }
@@ -1096,6 +1189,89 @@ mod tests {
         assert_eq!(merged.len(), 1);
         assert_eq!(merged[0].label, "Project Template");
         assert_eq!(merged[0].tool, TemplateTool::Cast);
+    }
+
+    #[test]
+    fn merge_custom_templates_migrates_legacy_broadcast_private_key_position() {
+        let legacy = vec![CustomTemplate {
+            id: "forge-script-broadcast".to_string(),
+            label: "Forge Script Broadcast".to_string(),
+            tool: TemplateTool::Forge,
+            args_template: vec![
+                "script".to_string(),
+                "script/Increment.s.sol:IncrementScript".to_string(),
+                "--rpc-url".to_string(),
+                "http://127.0.0.1:8545".to_string(),
+                "--broadcast".to_string(),
+                "--sig".to_string(),
+                "run(address)".to_string(),
+                "{{deployer_private_key}}".to_string(),
+                "-vv".to_string(),
+            ],
+            description: None,
+            tags: Vec::new(),
+            default_rpc_preset: Some("local".to_string()),
+            params: BTreeMap::new(),
+        }];
+
+        let merged = merge_custom_templates(legacy, Vec::new());
+        let template = merged
+            .iter()
+            .find(|template| template.id == "forge-script-broadcast")
+            .expect("expected migrated template");
+        assert!(template
+            .args_template
+            .windows(2)
+            .any(|pair| pair[0] == "--private-key" && pair[1] == "{{deployer_private_key}}"));
+    }
+
+    #[test]
+    fn merge_custom_templates_migrates_counter_addr_to_contract_address() {
+        let legacy = vec![CustomTemplate {
+            id: "forge-script-increment".to_string(),
+            label: "Forge Script Increment".to_string(),
+            tool: TemplateTool::Forge,
+            args_template: vec![
+                "script".to_string(),
+                "script/Increment.s.sol:IncrementScript".to_string(),
+                "--sig".to_string(),
+                "run(address)".to_string(),
+                "{{counter_addr}}".to_string(),
+            ],
+            description: None,
+            tags: Vec::new(),
+            default_rpc_preset: Some("local".to_string()),
+            params: BTreeMap::from([(
+                "counter_addr".to_string(),
+                TemplateParamMeta {
+                    label: None,
+                    default: None,
+                    secret: false,
+                    optional: false,
+                    kind: TemplateParamKind::String,
+                },
+            )]),
+        }];
+
+        let merged = merge_custom_templates(legacy, Vec::new());
+        let template = merged
+            .iter()
+            .find(|template| template.id == "forge-script-increment")
+            .expect("expected migrated template");
+
+        assert!(template
+            .args_template
+            .contains(&"{{contract_address}}".to_string()));
+        assert!(!template
+            .args_template
+            .contains(&"{{counter_addr}}".to_string()));
+
+        let meta = template
+            .params
+            .get("contract_address")
+            .expect("expected canonical contract address meta");
+        assert_eq!(meta.label.as_deref(), Some("Contract Address"));
+        assert_eq!(meta.kind, TemplateParamKind::Address);
     }
 
     fn test_temp_dir() -> PathBuf {

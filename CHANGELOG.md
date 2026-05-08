@@ -2,6 +2,17 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.0.5] - 2026-05-08
+
+### Added
+- Command Builder now accepts arbitrary `cast ...` commands from pasted input and saved templates.
+- Forge broadcast preview now validates private-key usage and migrates legacy templates to `--private-key <key>`.
+
+### Changed
+- Command Builder now uses a generic `contract_address` placeholder instead of `counter_addr`, while still migrating older saved templates automatically.
+- Forge/Anvil RPC defaults in the builder now prefer the selected running Anvil instance and preserve edited RPC values when cycling presets.
+- Dashboard copy now distinguishes dry-run `s` flows from broadcast-oriented `x` flows.
+
 ## [0.0.4] - 2026-05-07
 
 ### Added
